@@ -53,6 +53,21 @@ def pandamaster_action(action_type: str, game_name: str = "pandamaster", **kwarg
     elif game_name == "egame99":
         from app.services.scrapers.egame99 import EGame99Scraper
         scraper = EGame99Scraper()
+    elif game_name == "gameroom777":
+        from app.services.scrapers.gameroom777 import GameRoom777Scraper
+        scraper = GameRoom777Scraper()
+    elif game_name == "juwa2":
+        from app.services.scrapers.juwa2 import Juwa2Scraper
+        scraper = Juwa2Scraper()
+    elif game_name == "moolah":
+        from app.services.scrapers.moolah import MoolahScraper
+        scraper = MoolahScraper()
+    elif game_name == "mrallinone777":
+        from app.services.scrapers.mrallinone777 import MrAllInOne777Scraper
+        scraper = MrAllInOne777Scraper()
+    elif game_name == "vegasroll":
+        from app.services.scrapers.vegasroll import VegasRollScraper
+        scraper = VegasRollScraper()
     else:
         return {"status": "error", "message": f"Unsupported game: {game_name}"}
 

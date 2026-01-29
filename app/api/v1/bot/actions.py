@@ -21,8 +21,14 @@ async def trigger_bot_action(
     """
     Trigger a bot action in the background.
     """
-    if request.game_game not in ["pandamaster", "firekirin", "orionstars", "milkywayapp", "juwa777", "vegasx", "vblink777", "gamevault999", "ultrapanda", "cashfrenzy777", "cashmachine777", "lasvegassweeps", "egame99"]:
-        raise HTTPException(status_code=400, detail="Supported games: pandamaster, firekirin, orionstars, milkywayapp, juwa777, vegasx, vblink777, gamevault999, ultrapanda, cashfrenzy777, cashmachine777, lasvegassweeps, egame99")
+    SUPPORTED_GAMES = [
+        "pandamaster", "firekirin", "orionstars", "milkywayapp", "juwa777", 
+        "vegasx", "vblink777", "gamevault999", "ultrapanda", "cashfrenzy777", 
+        "cashmachine777", "lasvegassweeps", "egame99", "gameroom777", "juwa2",
+        "moolah", "mrallinone777", "vegasroll"
+    ]
+    if request.game_game not in SUPPORTED_GAMES:
+        raise HTTPException(status_code=400, detail=f"Supported games: {', '.join(SUPPORTED_GAMES)}")
         
     # Queue the task in Celery
     task = pandamaster_action.delay(

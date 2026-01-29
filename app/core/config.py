@@ -171,6 +171,16 @@ class Settings(BaseSettings):
     LASVEGASSWEEPS_PASS: Optional[str] = None
     EGAME99_USER: Optional[str] = None
     EGAME99_PASS: Optional[str] = None
+    GAMEROOM777_USER: Optional[str] = None
+    GAMEROOM777_PASS: Optional[str] = None
+    JUWA2_USER: Optional[str] = None
+    JUWA2_PASS: Optional[str] = None
+    MOOLAH_USER: Optional[str] = None
+    MOOLAH_PASS: Optional[str] = None
+    MRALLINONE777_USER: Optional[str] = None
+    MRALLINONE777_PASS: Optional[str] = None
+    VEGASROLL_USER: Optional[str] = None
+    VEGASROLL_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
