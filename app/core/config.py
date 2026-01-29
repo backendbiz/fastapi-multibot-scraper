@@ -169,6 +169,8 @@ class Settings(BaseSettings):
     CASHMACHINE777_PASS: Optional[str] = None
     LASVEGASSWEEPS_USER: Optional[str] = None
     LASVEGASSWEEPS_PASS: Optional[str] = None
+    EGAME99_USER: Optional[str] = None
+    EGAME99_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
