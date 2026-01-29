@@ -182,6 +182,10 @@ class Settings(BaseSettings):
     VEGASROLL_USER: Optional[str] = None
     VEGASROLL_PASS: Optional[str] = None
 
+    # Captcha Solving APIs (for Moolah and similar games)
+    CAPSOLVER_API: Optional[str] = None
+    TWOCAPTCHA_API: Optional[str] = None
+
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def parse_allowed_origins(cls, v):
