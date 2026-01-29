@@ -5,28 +5,51 @@ import logging
 logger = logging.getLogger(__name__)
 
 @shared_task(name="app.worker.tasks.pandamaster_action")
-def pandamaster_action(action_type: str, **kwargs):
+def pandamaster_action(action_type: str, game_name: str = "pandamaster", **kwargs):
     """
-    Executes a PandaMaster action (balance, deposit, redeem) in a background worker.
+    Executes a bot action (balance, deposit, redeem) in a background worker.
+    Supports: PandaMaster, FireKirin
     """
-    logger.info(f"Starting PandaMaster task: {action_type}")
-    scraper = PandaMasterScraper()
+    logger.info(f"Starting {game_name} task: {action_type}")
+    import asyncio
     
+    scraper = None
+    if game_name == "pandamaster":
+        from app.services.scrapers.pandamaster import PandaMasterScraper
+        scraper = PandaMasterScraper()
+    elif game_name == "firekirin":
+        from app.services.scrapers.firekirin import FireKirinScraper
+        scraper = FireKirinScraper()
+    else:
+        return {"status": "error", "message": f"Unsupported game: {game_name}"}
+
     try:
-        # 1. Login
-        if not scraper.login():
-            return {"status": "error", "message": "Login failed"}
-        
-        # 2. Perform Action
-        result = None
         if action_type == "agent_balance":
-            result = scraper.get_agent_balance()
-        # Add other actions here
+            # Handle async balance fetch
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+            balance, msg = loop.run_until_complete(scraper.get_agent_balance())
+            return {"status": "success" if balance is not None else "failure", "balance": balance, "message": msg}
             
-        return {"status": "success", "data": result}
-        
+        elif action_type == "signup":
+            return scraper.player_signup(kwargs.get("fullname"), kwargs.get("requested_username"))
+            
+        elif action_type == "recharge":
+            return scraper.recharge_user(kwargs.get("username"), kwargs.get("amount"))
+            
+        elif action_type == "redeem":
+            return scraper.redeem_user(kwargs.get("username"), kwargs.get("amount"))
+            
+        else:
+            return {"status": "error", "message": f"Unknown action: {action_type}"}
+            
     except Exception as e:
         logger.error(f"Task failed: {e}")
         return {"status": "error", "message": str(e)}
     finally:
-        scraper.close()
+        if scraper and scraper.driver:
+            scraper.close()

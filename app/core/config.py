@@ -147,6 +147,8 @@ class Settings(BaseSettings):
     # Bot Credentials
     PANDAMASTER_USER: Optional[str] = None
     PANDAMASTER_PASS: Optional[str] = None
+    FIREKIRIN_USER: Optional[str] = None
+    FIREKIRIN_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
