@@ -151,6 +151,8 @@ class Settings(BaseSettings):
     FIREKIRIN_PASS: Optional[str] = None
     ORIONSTARS_USER: Optional[str] = None
     ORIONSTARS_PASS: Optional[str] = None
+    MILKYWAY_USER: Optional[str] = None
+    MILKYWAY_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
