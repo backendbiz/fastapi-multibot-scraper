@@ -165,6 +165,8 @@ class Settings(BaseSettings):
     ULTRAPANDA_PASS: Optional[str] = None
     CASHFRENZY777_USER: Optional[str] = None
     CASHFRENZY777_PASS: Optional[str] = None
+    CASHMACHINE777_USER: Optional[str] = None
+    CASHMACHINE777_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
