@@ -29,6 +29,13 @@ async def lifespan(app: FastAPI):
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Debug mode: {settings.DEBUG}")
     
+    # Initialize Database
+    from app.db.session import engine, Base
+    async with engine.begin() as conn:
+        # await conn.run_sync(Base.metadata.drop_all) # Uncomment to reset DB
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("✅ Database tables created")
+    
     # Initialize bot manager
     from app.services.bot_manager import bot_manager
     

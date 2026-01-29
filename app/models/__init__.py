@@ -1,4 +1,2 @@
-"""
-Database models package.
-In production, add SQLAlchemy/Tortoise ORM models here.
-"""
+from app.models.all_models import Item, User
+from app.db.session import Base

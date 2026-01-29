@@ -3,8 +3,12 @@ Items CRUD API endpoints.
 """
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, delete
 
+from app.db.session import get_db
+from app.models.all_models import Item
 from app.schemas import (
     ErrorResponse,
     ItemCreate,
@@ -13,7 +17,6 @@ from app.schemas import (
     PaginatedResponse,
     SuccessResponse,
 )
-from app.services.database import items_db
 
 router = APIRouter(prefix="/items", tags=["Items"])
 
@@ -29,27 +32,36 @@ async def list_items(
     page_size: int = Query(default=10, ge=1, le=100, description="Items per page"),
     is_active: Optional[bool] = Query(default=None, description="Filter by active status"),
     search: Optional[str] = Query(default=None, description="Search in item name"),
+    db: AsyncSession = Depends(get_db),
 ):
     """List all items with pagination and filtering."""
-    filters = {}
+    # Build query
+    query = select(Item)
+    count_query = select(func.count()).select_from(Item)
+    
+    # Apply filters
     if is_active is not None:
-        filters["is_active"] = is_active
-
-    # If search is provided, use search function
+        query = query.where(Item.is_active == is_active)
+        count_query = count_query.where(Item.is_active == is_active)
+        
     if search:
-        items = items_db.search("name", search)
-        if is_active is not None:
-            items = [i for i in items if i.get("is_active") == is_active]
-        total = len(items)
-        offset = (page - 1) * page_size
-        items = items[offset : offset + page_size]
-    else:
-        total = items_db.count(filters if filters else None)
-        offset = (page - 1) * page_size
-        items = items_db.get_all(offset=offset, limit=page_size, filters=filters if filters else None)
+        search_filter = Item.name.ilike(f"%{search}%")
+        query = query.where(search_filter)
+        count_query = count_query.where(search_filter)
+    
+    # Get total count
+    total_result = await db.execute(count_query)
+    total = total_result.scalar_one()
+    
+    # Apply pagination
+    query = query.offset((page - 1) * page_size).limit(page_size).order_by(Item.created_at.desc())
+    
+    # Execute query
+    result = await db.execute(query)
+    items = result.scalars().all()
 
     return PaginatedResponse.create(
-        items=[ItemResponse(**item) for item in items],
+        items=[ItemResponse.model_validate(item.__dict__) for item in items],
         total=total,
         page=page,
         page_size=page_size,
@@ -62,15 +74,20 @@ async def list_items(
     summary="Get item by ID",
     responses={404: {"model": ErrorResponse}},
 )
-async def get_item(item_id: str):
+async def get_item(
+    item_id: str,
+    db: AsyncSession = Depends(get_db)
+):
     """Retrieve a specific item by its ID."""
-    item = items_db.get(item_id)
+    result = await db.execute(select(Item).where(Item.id == item_id))
+    item = result.scalar_one_or_none()
+    
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "not_found", "message": f"Item with ID '{item_id}' not found"},
         )
-    return ItemResponse(**item)
+    return ItemResponse.model_validate(item.__dict__)
 
 
 @router.post(
@@ -79,11 +96,16 @@ async def get_item(item_id: str):
     status_code=status.HTTP_201_CREATED,
     summary="Create a new item",
 )
-async def create_item(item: ItemCreate):
+async def create_item(
+    item: ItemCreate,
+    db: AsyncSession = Depends(get_db)
+):
     """Create a new item."""
-    item_data = item.model_dump()
-    created_item = items_db.create(item_data)
-    return ItemResponse(**created_item)
+    db_item = Item(**item.model_dump())
+    db.add(db_item)
+    await db.commit()
+    await db.refresh(db_item)
+    return ItemResponse.model_validate(db_item.__dict__)
 
 
 @router.put(
@@ -92,18 +114,28 @@ async def create_item(item: ItemCreate):
     summary="Update an item",
     responses={404: {"model": ErrorResponse}},
 )
-async def update_item(item_id: str, item: ItemUpdate):
+async def update_item(
+    item_id: str, 
+    item_update: ItemUpdate,
+    db: AsyncSession = Depends(get_db)
+):
     """Update an existing item."""
-    existing = items_db.get(item_id)
-    if not existing:
+    result = await db.execute(select(Item).where(Item.id == item_id))
+    db_item = result.scalar_one_or_none()
+    
+    if not db_item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "not_found", "message": f"Item with ID '{item_id}' not found"},
         )
     
-    update_data = item.model_dump(exclude_unset=True)
-    updated_item = items_db.update(item_id, update_data)
-    return ItemResponse(**updated_item)
+    update_data = item_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_item, key, value)
+        
+    await db.commit()
+    await db.refresh(db_item)
+    return ItemResponse.model_validate(db_item.__dict__)
 
 
 @router.patch(
@@ -112,9 +144,13 @@ async def update_item(item_id: str, item: ItemUpdate):
     summary="Partially update an item",
     responses={404: {"model": ErrorResponse}},
 )
-async def patch_item(item_id: str, item: ItemUpdate):
+async def patch_item(
+    item_id: str, 
+    item: ItemUpdate,
+    db: AsyncSession = Depends(get_db)
+):
     """Partially update an existing item."""
-    return await update_item(item_id, item)
+    return await update_item(item_id, item, db)
 
 
 @router.delete(
@@ -123,13 +159,22 @@ async def patch_item(item_id: str, item: ItemUpdate):
     summary="Delete an item",
     responses={404: {"model": ErrorResponse}},
 )
-async def delete_item(item_id: str):
+async def delete_item(
+    item_id: str,
+    db: AsyncSession = Depends(get_db)
+):
     """Delete an item by its ID."""
-    if not items_db.delete(item_id):
+    result = await db.execute(select(Item).where(Item.id == item_id))
+    item = result.scalar_one_or_none()
+    
+    if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "not_found", "message": f"Item with ID '{item_id}' not found"},
         )
+        
+    await db.delete(item)
+    await db.commit()
     return SuccessResponse(message=f"Item '{item_id}' deleted successfully")
 
 
@@ -139,7 +184,8 @@ async def delete_item(item_id: str):
     summary="Delete all items",
     description="Delete all items from the database. Use with caution!",
 )
-async def delete_all_items():
+async def delete_all_items(db: AsyncSession = Depends(get_db)):
     """Delete all items."""
-    count = items_db.clear()
-    return SuccessResponse(message=f"Deleted {count} items")
+    result = await db.execute(delete(Item))
+    await db.commit()
+    return SuccessResponse(message=f"Deleted {result.rowcount} items")
