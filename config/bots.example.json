@@ -1,0 +1,48 @@
+{
+  "description": "Sample bot configurations for FastAPI Scraper Server",
+  "usage": "Set BOTS_CONFIG_FILE=/app/config/bots.json or copy content to BOTS_CONFIG env var",
+  "bots": [
+    {
+      "bot_id": "scraper_bot_1",
+      "bot_token": "123456789:ABCdefGHIjklMNOpqrsTUVwxyz_example1",
+      "bot_name": "Scraper Bot 1",
+      "channel_id": "@my_scraper_channel_1",
+      "allowed_users": [],
+      "allowed_commands": ["scrape", "batch", "status", "help"],
+      "is_active": true,
+      "default_wait_time": 5,
+      "default_timeout": 30,
+      "take_screenshot": true,
+      "description": "Main scraper bot for website monitoring",
+      "tags": ["production", "monitoring"]
+    },
+    {
+      "bot_id": "scraper_bot_2",
+      "bot_token": "987654321:ZYXwvuTSRqponMLKjihGFEdcba_example2",
+      "bot_name": "Scraper Bot 2",
+      "channel_id": "-1001234567890",
+      "allowed_users": [123456789, 987654321],
+      "allowed_commands": ["scrape", "status", "help"],
+      "is_active": true,
+      "default_wait_time": 3,
+      "default_timeout": 45,
+      "take_screenshot": true,
+      "description": "Secondary bot with restricted users",
+      "tags": ["production", "restricted"]
+    },
+    {
+      "bot_id": "news_scraper",
+      "bot_token": "111222333:AAAbbbCCCdddEEEfffGGGhhhIII_example3",
+      "bot_name": "News Scraper",
+      "channel_id": "@news_updates_channel",
+      "allowed_users": [],
+      "allowed_commands": ["scrape", "batch", "status", "help"],
+      "is_active": true,
+      "default_wait_time": 10,
+      "default_timeout": 60,
+      "take_screenshot": false,
+      "description": "Bot for scraping news websites",
+      "tags": ["news", "production"]
+    }
+  ]
+}

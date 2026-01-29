@@ -1,0 +1,97 @@
+# ==============================================================================
+# Docker Compose Configuration
+# FastAPI Scraper with Selenium & Telegram
+# For local development and Coolify deployment
+# ==============================================================================
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-scraper
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      # Application settings
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DEBUG=${DEBUG:-false}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=${WORKERS:-4}
+      
+      # API settings
+      - PROJECT_NAME=${PROJECT_NAME:-FastAPI Scraper Server}
+      - VERSION=${VERSION:-1.0.0}
+      - ENABLE_DOCS=${ENABLE_DOCS:-true}
+      
+      # Security - IMPORTANT: Set these in production!
+      - API_KEY_SECRET=${API_KEY_SECRET}
+      - VALID_API_KEYS=${VALID_API_KEYS:-dev-key-123,test-key-456}
+      
+      # Telegram Configuration
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHANNEL_ID=${TELEGRAM_CHANNEL_ID}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - TELEGRAM_PARSE_MODE=${TELEGRAM_PARSE_MODE:-HTML}
+      
+      # Selenium Configuration
+      - SELENIUM_HEADLESS=${SELENIUM_HEADLESS:-true}
+      - SELENIUM_TIMEOUT=${SELENIUM_TIMEOUT:-30}
+      - SELENIUM_PAGE_LOAD_TIMEOUT=${SELENIUM_PAGE_LOAD_TIMEOUT:-60}
+      - SELENIUM_IMPLICIT_WAIT=${SELENIUM_IMPLICIT_WAIT:-10}
+      - SCREENSHOTS_DIR=/app/screenshots
+      
+      # CORS settings
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      
+      # Database (for future use)
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+    volumes:
+      - app-data:/app/data
+      - app-logs:/app/logs
+      - app-screenshots:/app/screenshots
+    # Increase shared memory for Chrome
+    shm_size: '2gb'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - app-network
+    # Uncomment for development with live reload
+    # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    
+  # Redis for caching/rate limiting (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: fastapi-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - app-network
+    profiles:
+      - with-redis
+
+volumes:
+  app-data:
+  app-logs:
+  app-screenshots:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge

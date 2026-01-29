@@ -1,0 +1,59 @@
+# ==============================================================================
+# FastAPI Production Server - Python Dependencies
+# With Selenium Scraping & Telegram Integration
+# ==============================================================================
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+gunicorn==23.0.0
+
+# Pydantic for data validation
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# Security - Cryptography for API key encryption
+cryptography==44.0.0
+
+# HTTP client (for testing and external API calls)
+httpx==0.28.1
+
+# Starlette (for middleware)
+starlette==0.45.2
+
+# Python-multipart for form data
+python-multipart==0.0.19
+
+# Production ASGI server
+uvloop==0.21.0; sys_platform != "win32"
+httptools==0.6.4
+
+# ============== Selenium Web Scraping ==============
+selenium==4.27.1
+webdriver-manager==4.0.2
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# ============== Telegram Integration ==============
+python-telegram-bot==21.9
+aiogram==3.17.0
+
+# ============== Background Tasks ==============
+celery==5.4.0
+redis==5.2.1
+
+# ============== Async Support ==============
+aiohttp==3.11.11
+aiofiles==24.1.0
+
+# Development & Testing
+pytest==8.3.4
+pytest-asyncio==0.25.2
+pytest-cov==6.0.0
+
+# Code Quality
+ruff==0.8.6
+mypy==1.14.1
+
+# Typing extensions
+typing-extensions==4.12.2
