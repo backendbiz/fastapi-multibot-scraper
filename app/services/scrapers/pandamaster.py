@@ -147,21 +147,191 @@ class PandaMasterScraper:
         except Exception:
             return False
 
-    def get_agent_balance(self):
-        if not self._check_session_timeout():
-            return None, "Login Failed"
+    async def get_agent_balance(self):
+        """
+        Fetches agent balance directly via the API service, faster than Selenium.
+        """
+        import hashlib
+        import requests
+        
+        try:
+            # Logic ported from firekirinmilkyorionpanda_balancer.py
+            def md5_hash(text):
+                return hashlib.md5(text.encode()).hexdigest()
+
+            login_params = {
+                "action": "agentLogin",
+                "agentName": self.username,
+                "agentPasswd": md5_hash(self.password),
+                "time": str(int(time.time() * 1000))
+            }
+            
+            # Using synchronous requests here inside async method is okay for now, 
+            # ideally use httpx for async
+            response = requests.post(self.CHECK_URL, params=login_params, timeout=10)
+            data = response.json()
+            
+            if data.get("code") == '200':
+                return float(data.get("balance")), "Success"
+            return None, data.get("msg", "Unknown API error")
+            
+        except Exception as e:
+            return None, f"Agent balance fetch failed: {str(e)}"
+
+    def _generate_username(self, fullname: str) -> str:
+        import random
+        n = fullname.lower().split()
+        # simplified logic from original
+        base = f"pm{n[0][0]}{n[-1][0]}" if n else "pmuser"
+        base = base[:5]
+        username = f"{base}{random.randrange(1000):03d}"
+        if len(username) < 7:
+            username += "".join(str(random.randint(0, 9)) for _ in range(7 - len(username)))
+        return username
+
+    def player_signup(self, fullname: str, requested_username: str = None):
+        """
+        Performs player signup.
+        """
+        if not self.login():
+            return {"status": "error", "message": "Login failed"}
+            
+        try:
+            from app.services.receipts.receipt_generator import save_receipt
+            
+            # Generate credentials if needed
+            import random
+            
+            if not requested_username:
+                requested_username = self._generate_username(fullname)
+            
+            # Use requested_username as password for simplicity or generate one
+            password = requested_username 
+            nickname = fullname.replace(" ", "")[:10]
+
+            self._switch_to_main_frame()
+            self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Create Player'))).click()
+            
+            # Switch to nested iframe (logic from original _switch_to_nested_iframe)
+            self._switch_to_default_frame()
+            # Wait for 4 iframes to be present as per original logic
+            self.wait.until(lambda d: len(d.find_elements(By.TAG_NAME, "iframe")) >= 4)
+            target_frame = self.driver.find_elements(By.TAG_NAME, "iframe")[3]
+            self.driver.switch_to.frame(target_frame)
+
+            # Fill Form
+            self.wait.until(EC.element_to_be_clickable((By.ID, 'txtAccount'))).send_keys(requested_username)
+            self.driver.find_element(By.ID, 'txtNickName').send_keys(nickname)
+            self.driver.find_element(By.ID, 'txtLogonPass').send_keys(password)
+            self.driver.find_element(By.ID, 'txtLogonPass2').send_keys(password)
+            
+            self.driver.find_element(By.LINK_TEXT, 'Create Player').click()
+
+            # Save Receipt
+            # Note: save_receipt needs bot instance, which we might not have in this context.
+            # For now returning placeholder or skipping receipt generation in this strict port.
+            receipt_link = "Receipt generation requires telegram bot instance"
+            
+            self._switch_to_default_frame()
+            
+            # Handle Msg Box
+            raw_msg = self.wait.until(EC.presence_of_element_located(self.LOCATORS['mb_msg'])).text
+            self.driver.find_element(*self.LOCATORS['mb_ok']).click()
+
+            status = "Added successfully" in raw_msg
+            
+            return {
+                "status": "success" if status else "failure",
+                "message": raw_msg,
+                "username": requested_username,
+                "password": password,
+                "receipt_link": receipt_link
+            }
+            
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def recharge_user(self, username: str, amount: float):
+        """
+        Recharges a user account.
+        """
+        return self._perform_transaction(username, amount, "recharge")
+
+    def redeem_user(self, username: str, amount: float):
+        """
+        Redeems from a user account.
+        """
+        # Redeem implies negative flow in some contexts, but function takes positive amount usually
+        # Original logic used abs(amount) and flow_type.
+        return self._perform_transaction(username, amount, "redeem")
+
+    def _perform_transaction(self, username: str, amount: float, flow_type: str):
+        if not self.login():
+            return {"status": "error", "message": "Login failed"}
 
         try:
-            # Logic from fmo_balance_fetch (simplified for direct inclusion)
-            # Typically you navigate to a frame and read a span
-            # Assuming standard structure here based on original code usage
+            # 1. Verify User exists and get balance
+            user_exists = self._verify_user_in_table(username)
+            if not user_exists:
+                return {"status": "error", "message": "User not found in table"}
+
+            # 2. Perform Transaction
             self._switch_to_main_frame()
+            link_text = 'Recharge' if flow_type == 'recharge' else 'Redeem'
+            self.wait.until(EC.element_to_be_clickable((By.LINK_TEXT, link_text))).click()
             
-            # This is a placeholder as the original code imported `fmo_balance_fetch`
-            # For this migration, we need to know what that function did.
-            # Based on the bot code, it seems to just read a balance element.
-            pass  # You will need to inspect fmo_balance_fetch content to fully implement this
+            # Switch to nested
+            self._switch_to_default_frame()
+            self.wait.until(lambda d: len(d.find_elements(By.TAG_NAME, "iframe")) >= 4)
+            target_frame = self.driver.find_elements(By.TAG_NAME, "iframe")[3]
+            self.driver.switch_to.frame(target_frame)
+
+            # Fill Amount
+            add_gold = self.wait.until(EC.element_to_be_clickable(self.LOCATORS['add_gold']))
+            add_gold.clear()
+            add_gold.send_keys(str(abs(amount)))
             
-            return 0.0, "Success" # Mock for now
+            self.driver.find_element(*self.LOCATORS['note']).send_keys("bot transaction")
+            self.driver.find_element(*self.LOCATORS['submit_btn']).click()
+            
+            self._switch_to_default_frame()
+            raw_msg = self.wait.until(EC.presence_of_element_located(self.LOCATORS['mb_msg'])).text
+            self.driver.find_element(*self.LOCATORS['mb_ok']).click()
+            
+            return {
+                "status": "success" if "Confirmed successful" in raw_msg else "failure",
+                "message": raw_msg
+            }
+
         except Exception as e:
-            return None, str(e)
+            return {"status": "error", "message": str(e)}
+
+    def _verify_user_in_table(self, target_username: str) -> bool:
+        """
+        Scans values in the table to find the user.
+        """
+        target_username = target_username.lower()
+        self._switch_to_main_frame()
+        
+        # Reset search if needed
+        try:
+            search_field = self.wait.until(EC.element_to_be_clickable(self.LOCATORS['search_input']))
+            search_field.clear()
+            search_field.send_keys(target_username)
+            self.driver.find_element(*self.LOCATORS['search_btn']).click()
+            
+            # Check first few rows
+            for i in range(2, 7): # rows 2 to 6
+                try:
+                    xpath = f"//table[@id='item']/tbody/tr[{i}]/td[3]"
+                    username = self.driver.find_element(By.XPATH, xpath).text.strip().lower()
+                    if username == target_username:
+                        self._switch_to_default_frame()
+                        return True
+                except:
+                    break
+        except Exception:
+            pass
+            
+        self._switch_to_default_frame()
+        return False
