@@ -157,6 +157,8 @@ class Settings(BaseSettings):
     JUWA777_PASS: Optional[str] = None
     VEGASX_USER: Optional[str] = None
     VEGASX_PASS: Optional[str] = None
+    VBLINK777_USER: Optional[str] = None
+    VBLINK777_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
