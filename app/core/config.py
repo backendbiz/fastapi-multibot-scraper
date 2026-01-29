@@ -51,11 +51,11 @@ class Settings(BaseSettings):
     )
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = Field(
+    ALLOWED_ORIGINS: List[str] | str = Field(
         default=["*"],
         description="List of allowed CORS origins",
     )
-    ALLOWED_HOSTS: List[str] = Field(
+    ALLOWED_HOSTS: List[str] | str = Field(
         default=["*"],
         description="List of allowed hosts",
     )
