@@ -155,6 +155,8 @@ class Settings(BaseSettings):
     MILKYWAY_PASS: Optional[str] = None
     JUWA777_USER: Optional[str] = None
     JUWA777_PASS: Optional[str] = None
+    VEGASX_USER: Optional[str] = None
+    VEGASX_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
