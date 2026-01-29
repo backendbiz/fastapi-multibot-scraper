@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     )
     API_KEY_HEADER_NAME: str = Field(default="X-API-Key", description="Header name for API key")
 
+    # Sentry
+    SENTRY_DSN: Optional[str] = None
+
     # Valid API Keys (comma-separated encrypted keys in production)
     VALID_API_KEYS: str = Field(
         default="dev-key-123,test-key-456",

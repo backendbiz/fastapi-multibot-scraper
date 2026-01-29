@@ -60,7 +60,9 @@ pytest-cov==6.0.0
 # Code Quality
 ruff==0.8.6
 mypy==1.14.1
-
+celery[redis]
+flower
+sentry-sdk[fastapi]
 # Typing extensions
 typing-extensions==4.12.2
 
