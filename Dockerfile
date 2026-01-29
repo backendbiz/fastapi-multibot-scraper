@@ -31,8 +31,8 @@ FROM python:3.12-slim as production
 
 # Labels for container metadata
 LABEL maintainer="your-email@example.com" \
-      version="1.0.0" \
-      description="FastAPI Server with Selenium Scraping and Telegram Integration"
+    version="1.0.0" \
+    description="FastAPI Server with Selenium Scraping and Telegram Integration"
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -42,7 +42,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     ENVIRONMENT=production \
     DEBUG=false \
     HOST=0.0.0.0 \
-    PORT=8000 \
+    PORT=3000 \
     # Chrome settings
     CHROME_BIN=/usr/bin/chromium \
     CHROMEDRIVER_PATH=/usr/bin/chromedriver \
@@ -102,11 +102,11 @@ RUN mkdir -p /app/logs /app/data /app/screenshots \
 USER appuser
 
 # Expose port
-EXPOSE 8000
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:3000/health || exit 1
 
 # Run the application with Gunicorn + Uvicorn workers
-CMD ["sh", "-c", "gunicorn app.main:app --workers ${WORKERS:-4} --worker-class uvicorn.workers.UvicornWorker --bind ${HOST:-0.0.0.0}:${PORT:-8000} --access-logfile - --error-logfile - --capture-output --timeout 120"]
+CMD ["sh", "-c", "gunicorn app.main:app --workers ${WORKERS:-4} --worker-class uvicorn.workers.UvicornWorker --bind ${HOST:-0.0.0.0}:${PORT:-3000} --access-logfile - --error-logfile - --capture-output --timeout 120"]

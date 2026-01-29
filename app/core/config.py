@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # Server
     HOST: str = Field(default="0.0.0.0", description="Server host")
-    PORT: int = Field(default=8000, description="Server port")
+    PORT: int = Field(default=3000, description="Server port")
     WORKERS: int = Field(default=4, description="Number of worker processes")
 
     # API Settings
