@@ -23,66 +23,6 @@ class TimestampMixin(BaseModel):
     updated_at: Optional[datetime] = None
 
 
-# ============== Item Schemas ==============
-
-class ItemBase(BaseModel):
-    """Base schema for Item."""
-    name: str = Field(..., min_length=1, max_length=255, description="Item name")
-    description: Optional[str] = Field(None, max_length=1000, description="Item description")
-    price: float = Field(..., gt=0, description="Item price (must be positive)")
-    quantity: int = Field(default=0, ge=0, description="Item quantity in stock")
-    is_active: bool = Field(default=True, description="Whether item is active")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
-
-
-class ItemCreate(ItemBase):
-    """Schema for creating an Item."""
-    pass
-
-
-class ItemUpdate(BaseModel):
-    """Schema for updating an Item (all fields optional)."""
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
-    price: Optional[float] = Field(None, gt=0)
-    quantity: Optional[int] = Field(None, ge=0)
-    is_active: Optional[bool] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class ItemResponse(ItemBase, TimestampMixin):
-    """Schema for Item response."""
-    id: str = Field(..., description="Unique item identifier")
-
-
-# ============== User Schemas ==============
-
-class UserBase(BaseModel):
-    """Base schema for User."""
-    email: str = Field(..., description="User email address")
-    username: str = Field(..., min_length=3, max_length=50, description="Username")
-    full_name: Optional[str] = Field(None, max_length=100, description="Full name")
-    is_active: bool = Field(default=True, description="Whether user is active")
-
-
-class UserCreate(UserBase):
-    """Schema for creating a User."""
-    password: str = Field(..., min_length=8, description="User password")
-
-
-class UserUpdate(BaseModel):
-    """Schema for updating a User."""
-    email: Optional[str] = None
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
-    full_name: Optional[str] = Field(None, max_length=100)
-    is_active: Optional[bool] = None
-
-
-class UserResponse(UserBase, TimestampMixin):
-    """Schema for User response (excludes password)."""
-    id: str = Field(..., description="Unique user identifier")
-
-
 # ============== API Key Schemas ==============
 
 class APIKeyCreate(BaseModel):
