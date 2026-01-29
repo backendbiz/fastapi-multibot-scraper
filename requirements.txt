@@ -19,7 +19,7 @@ cryptography==44.0.0
 httpx==0.28.1
 
 # Starlette (for middleware)
-starlette==0.45.2
+starlette==0.41.3
 
 # Python-multipart for form data
 python-multipart==0.0.19
