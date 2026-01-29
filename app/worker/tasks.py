@@ -35,6 +35,9 @@ def pandamaster_action(action_type: str, game_name: str = "pandamaster", **kwarg
     elif game_name == "vblink777":
         from app.services.scrapers.vblink777 import VBlink777Scraper
         scraper = VBlink777Scraper()
+    elif game_name == "gamevault999":
+        from app.services.scrapers.gamevault999 import GameVault999Scraper
+        scraper = GameVault999Scraper()
     else:
         return {"status": "error", "message": f"Unsupported game: {game_name}"}
 
