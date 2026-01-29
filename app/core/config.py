@@ -153,6 +153,8 @@ class Settings(BaseSettings):
     ORIONSTARS_PASS: Optional[str] = None
     MILKYWAY_USER: Optional[str] = None
     MILKYWAY_PASS: Optional[str] = None
+    JUWA777_USER: Optional[str] = None
+    JUWA777_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
