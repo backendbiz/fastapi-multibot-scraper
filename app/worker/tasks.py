@@ -47,6 +47,9 @@ def pandamaster_action(action_type: str, game_name: str = "pandamaster", **kwarg
     elif game_name == "cashmachine777":
         from app.services.scrapers.cashmachine777 import CashMachine777Scraper
         scraper = CashMachine777Scraper()
+    elif game_name == "lasvegassweeps":
+        from app.services.scrapers.lasvegassweeps import LasVegasSweepsScraper
+        scraper = LasVegasSweepsScraper()
     else:
         return {"status": "error", "message": f"Unsupported game: {game_name}"}
 
