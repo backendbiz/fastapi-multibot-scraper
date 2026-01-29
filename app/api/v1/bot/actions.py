@@ -21,8 +21,8 @@ async def trigger_bot_action(
     """
     Trigger a bot action in the background.
     """
-    if request.game_game not in ["pandamaster", "firekirin"]:
-        raise HTTPException(status_code=400, detail="Supported games: pandamaster, firekirin")
+    if request.game_game not in ["pandamaster", "firekirin", "orionstars"]:
+        raise HTTPException(status_code=400, detail="Supported games: pandamaster, firekirin, orionstars")
         
     # Queue the task in Celery
     task = pandamaster_action.delay(

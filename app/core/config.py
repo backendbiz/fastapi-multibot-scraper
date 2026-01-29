@@ -149,6 +149,8 @@ class Settings(BaseSettings):
     PANDAMASTER_PASS: Optional[str] = None
     FIREKIRIN_USER: Optional[str] = None
     FIREKIRIN_PASS: Optional[str] = None
+    ORIONSTARS_USER: Optional[str] = None
+    ORIONSTARS_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod

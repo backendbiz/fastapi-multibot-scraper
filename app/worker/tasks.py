@@ -20,6 +20,9 @@ def pandamaster_action(action_type: str, game_name: str = "pandamaster", **kwarg
     elif game_name == "firekirin":
         from app.services.scrapers.firekirin import FireKirinScraper
         scraper = FireKirinScraper()
+    elif game_name == "orionstars":
+        from app.services.scrapers.orionstars import OrionStarsScraper
+        scraper = OrionStarsScraper()
     else:
         return {"status": "error", "message": f"Unsupported game: {game_name}"}
 
