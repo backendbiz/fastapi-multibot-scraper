@@ -161,6 +161,8 @@ class Settings(BaseSettings):
     VBLINK777_PASS: Optional[str] = None
     GAMEVAULT999_USER: Optional[str] = None
     GAMEVAULT999_PASS: Optional[str] = None
+    ULTRAPANDA_USER: Optional[str] = None
+    ULTRAPANDA_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
