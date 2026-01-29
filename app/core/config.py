@@ -140,6 +140,13 @@ class Settings(BaseSettings):
         default="redis://localhost:6379/0",
         description="Redis connection URL",
     )
+    
+    # Sentry
+    SENTRY_DSN: Optional[str] = None
+    
+    # Bot Credentials
+    PANDAMASTER_USER: Optional[str] = None
+    PANDAMASTER_PASS: Optional[str] = None
 
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod

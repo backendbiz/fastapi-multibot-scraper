@@ -63,6 +63,10 @@ mypy==1.14.1
 celery[redis]
 flower
 sentry-sdk[fastapi]
+undetected-chromedriver
+capsolver
+pyTelegramBotAPI
+requests
 # Typing extensions
 typing-extensions==4.12.2
 
